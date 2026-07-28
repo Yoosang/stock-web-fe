@@ -19,3 +19,15 @@ export function changeRateColorClass(changeRate: string | null): string {
   if (Number.isNaN(value) || value === 0) return "text-gray-500";
   return value > 0 ? "text-red-600" : "text-blue-600";
 }
+
+export function formatPubDate(pubDate: string): string {
+  const date = new Date(pubDate);
+  if (Number.isNaN(date.getTime())) return pubDate;
+  return date.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Client } from "@stomp/stompjs";
 import { useAuth } from "@/lib/auth-context";
 import { addWatchlist, getWatchlist, removeWatchlist, UnauthorizedError, WatchlistItem } from "@/lib/api";
@@ -147,6 +148,9 @@ export default function WatchlistPage() {
                   {formatChangeRate(item.changeRate)}
                 </p>
               </div>
+              <Link href={`/stocks/${item.symbol}/news`} className="text-sm text-blue-500 underline">
+                뉴스
+              </Link>
               <button onClick={() => handleRemove(item.symbol)} className="text-sm text-red-500 underline">
                 삭제
               </button>

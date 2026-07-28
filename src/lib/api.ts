@@ -25,6 +25,12 @@ export type NewsItem = {
   pubDate: string;
 };
 
+export type NewsResponse = {
+  symbol: string;
+  name: string;
+  items: NewsItem[];
+};
+
 async function apiFetch(path: string, options: RequestInit = {}, token?: string): Promise<Response> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -92,8 +98,8 @@ export async function removeWatchlist(token: string, stockSymbol: string): Promi
   }
 }
 
-export async function getNews(symbol: string): Promise<NewsItem[]> {
-  const res = await apiFetch(`/stocks/${symbol}/news`, { method: "GET" });
+export async function getNews(token: string, symbol: string): Promise<NewsResponse> {
+  const res = await apiFetch(`/stocks/${symbol}/news`, { method: "GET" }, token);
   if (!res.ok) {
     throw new Error("뉴스를 불러오지 못했습니다.");
   }
