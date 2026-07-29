@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
-  const { token, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
-    router.replace(token ? "/watchlist" : "/login");
-  }, [isLoading, token, router]);
+    router.replace(isAuthenticated ? "/watchlist" : "/login");
+  }, [isLoading, isAuthenticated, router]);
 
   return null;
 }

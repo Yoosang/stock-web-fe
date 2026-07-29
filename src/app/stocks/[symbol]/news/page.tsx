@@ -1,42 +1,36 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
-import { getNews, NewsResponse, UnauthorizedError } from "@/lib/api";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import { getErrorMessage, getNews, NewsResponse, UnauthorizedError } from "@/lib/api";
 import { formatPubDate } from "@/lib/format";
 
 export default function StockNewsPage() {
   const { symbol } = useParams<{ symbol: string }>();
-  const { token, isLoading } = useAuth();
-  const router = useRouter();
+  const { ready } = useRequireAuth();
   const [news, setNews] = useState<NewsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
-    if (!token) return;
+    if (!ready) return;
     try {
-      const data = await getNews(token, symbol);
+      const data = await getNews(symbol);
       setNews(data);
     } catch (err) {
       if (err instanceof UnauthorizedError) return;
-      setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
+      setError(getErrorMessage(err));
     }
-  }, [token, symbol]);
+  }, [ready, symbol]);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-    // 마운트 시 서버에서 뉴스를 가져오는 데이터 패칭이라 setState가 뒤따르는 게 정상 흐름이다.
+    // 토큰이 준비되면 뉴스를 가져오는 데이터 패칭이라 setState가 뒤따르는 게 정상 흐름이다.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     reload();
-  }, [isLoading, token, router, reload]);
+  }, [reload]);
 
-  if (isLoading || !token) return null;
+  if (!ready) return null;
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-8 flex flex-col gap-6">

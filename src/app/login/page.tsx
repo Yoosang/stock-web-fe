@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { login as apiLogin, signup as apiSignup } from "@/lib/api";
+import { getErrorMessage, login as apiLogin, signup as apiSignup } from "@/lib/api";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -25,11 +25,11 @@ export default function LoginPage() {
         setError("회원가입이 완료되었습니다. 로그인해 주세요.");
         return;
       }
-      const token = await apiLogin(email, password);
-      login(token);
+      await apiLogin(email, password);
+      login();
       router.push("/watchlist");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
+      setError(getErrorMessage(err));
     } finally {
       setPending(false);
     }
