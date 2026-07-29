@@ -23,9 +23,12 @@ export function WatchlistAddForm({ onAdd }: Props) {
         value={symbolInput}
         onChange={(e) => setSymbolInput(e.target.value)}
         placeholder="종목코드 (예: 005930)"
-        className="border rounded px-3 py-2 flex-1"
+        className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
       />
-      <button type="submit" className="bg-black text-white rounded px-4 py-2">
+      <button
+        type="submit"
+        className="rounded-lg bg-accent hover:bg-accent-hover text-accent-foreground text-sm font-medium px-4 py-2 transition-colors"
+      >
         추가
       </button>
     </form>

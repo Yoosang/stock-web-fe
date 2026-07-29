@@ -14,10 +14,10 @@ export function formatChangeRate(changeRate: string | null): string {
 }
 
 export function changeRateColorClass(changeRate: string | null): string {
-  if (changeRate === null) return "text-gray-500";
+  if (changeRate === null) return "text-muted";
   const value = Number(changeRate);
-  if (Number.isNaN(value) || value === 0) return "text-gray-500";
-  return value > 0 ? "text-red-600" : "text-blue-600";
+  if (Number.isNaN(value) || value === 0) return "text-muted";
+  return value > 0 ? "text-up" : "text-down";
 }
 
 export function formatPubDate(pubDate: string): string {

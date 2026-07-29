@@ -16,9 +16,10 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 
 export function useWatchlist(enabled: boolean) {
   const [items, setItems] = useState<WatchlistItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  function handleApiError(err: unknown) {
+  function handleError(err: unknown, setError: (message: string | null) => void) {
     // UnauthorizedError는 전역 로그아웃 이벤트가 이미 처리했고 곧 로그인 페이지로 리다이렉트되므로 메시지를 띄우지 않는다.
     if (err instanceof UnauthorizedError) return;
     setError(getErrorMessage(err));
@@ -30,7 +31,7 @@ export function useWatchlist(enabled: boolean) {
       const data = await getWatchlist();
       setItems(data);
     } catch (err) {
-      handleApiError(err);
+      handleError(err, setLoadError);
     }
   }, [enabled]);
 
@@ -76,25 +77,27 @@ export function useWatchlist(enabled: boolean) {
 
   async function addSymbol(symbol: string): Promise<boolean> {
     if (!enabled) return false;
+    setActionError(null);
     try {
       await addWatchlist(symbol);
       await reload();
       return true;
     } catch (err) {
-      handleApiError(err);
+      handleError(err, setActionError);
       return false;
     }
   }
 
   async function removeSymbol(symbol: string) {
     if (!enabled) return;
+    setActionError(null);
     try {
       await removeWatchlist(symbol);
       await reload();
     } catch (err) {
-      handleApiError(err);
+      handleError(err, setActionError);
     }
   }
 
-  return { items, error, addSymbol, removeSymbol };
+  return { items, loadError, actionError, addSymbol, removeSymbol };
 }

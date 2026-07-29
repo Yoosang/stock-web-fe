@@ -33,35 +33,38 @@ export default function StockNewsPage() {
   if (!ready) return null;
 
   return (
-    <div className="flex-1 max-w-2xl mx-auto w-full p-8 flex flex-col gap-6">
+    <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-8 flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
-          {news?.name ?? symbol} <span className="text-gray-400 text-lg">{symbol}</span> 뉴스
+        <h1 className="text-lg font-semibold">
+          {news?.name ?? symbol} <span className="text-muted text-sm font-mono">{symbol}</span> 뉴스
         </h1>
-        <Link href="/watchlist" className="text-sm text-gray-500 underline">
+        <Link href="/watchlist" className="text-sm text-muted hover:text-foreground transition-colors">
           관심종목으로
         </Link>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-up">{error}</p>}
 
-      <ul className="flex flex-col divide-y">
+      <ul className="flex flex-col rounded-lg border border-border bg-surface overflow-hidden">
         {news?.items.map((item) => (
-          <li key={item.url} className="py-4 flex flex-col gap-1">
+          <li
+            key={item.url}
+            className="px-4 py-4 flex flex-col gap-1 border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors"
+          >
             <a
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium hover:underline"
+              className="font-medium hover:text-accent transition-colors"
             >
               {item.title}
             </a>
-            <p className="text-sm text-gray-600">{item.content}</p>
-            <p className="text-xs text-gray-400">{formatPubDate(item.pubDate)}</p>
+            <p className="text-sm text-muted">{item.content}</p>
+            <p className="text-xs text-muted">{formatPubDate(item.pubDate)}</p>
           </li>
         ))}
         {news && news.items.length === 0 && (
-          <li className="py-6 text-center text-gray-400">관련 뉴스가 없습니다.</li>
+          <li className="py-10 text-center text-sm text-muted">관련 뉴스가 없습니다.</li>
         )}
       </ul>
     </div>
