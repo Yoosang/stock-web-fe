@@ -45,6 +45,7 @@ export function WatchlistManageModal({ open, onClose, items, error, onAdd, onRem
 
         {error && <p className="text-sm text-up">{error}</p>}
 
+        <p className="text-xs font-medium text-muted">내 관심종목</p>
         <ul className="flex flex-col rounded-lg border border-border overflow-y-auto max-h-80">
           {items.map((item) => (
             <li

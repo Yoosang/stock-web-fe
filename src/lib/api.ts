@@ -42,6 +42,12 @@ export type QuoteUpdate = {
   changeRate: string;
 };
 
+export type StockSearchResult = {
+  symbol: string;
+  name: string;
+  market: string;
+};
+
 async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
   return fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -106,6 +112,7 @@ export async function addWatchlist(stockSymbol: string): Promise<void> {
   if (!res.ok) {
     if (res.status === 409) throw new Error("이미 추가된 종목입니다.");
     if (res.status === 400) throw new Error("관심종목은 최대 10개까지 등록할 수 있습니다.");
+    if (res.status === 410) throw new Error("상장폐지된 종목입니다.");
     throw new Error("종목 추가에 실패했습니다.");
   }
 }
@@ -116,6 +123,15 @@ export async function removeWatchlist(stockSymbol: string): Promise<void> {
   if (!res.ok) {
     throw new Error("종목 삭제에 실패했습니다.");
   }
+}
+
+export async function searchStocks(query: string): Promise<StockSearchResult[]> {
+  const res = await apiFetch(`/stocks?query=${encodeURIComponent(query)}`, { method: "GET" });
+  assertAuthorized(res);
+  if (!res.ok) {
+    throw new Error("종목 검색에 실패했습니다.");
+  }
+  return res.json();
 }
 
 export async function getNews(symbol: string): Promise<NewsResponse> {
