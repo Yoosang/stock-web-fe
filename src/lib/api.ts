@@ -104,7 +104,9 @@ export async function addWatchlist(stockSymbol: string): Promise<void> {
   const res = await apiFetch("/watchlist", { method: "POST", body: JSON.stringify({ stockSymbol }) });
   assertAuthorized(res);
   if (!res.ok) {
-    throw new Error(res.status === 409 ? "이미 추가된 종목입니다." : "종목 추가에 실패했습니다.");
+    if (res.status === 409) throw new Error("이미 추가된 종목입니다.");
+    if (res.status === 400) throw new Error("관심종목은 최대 10개까지 등록할 수 있습니다.");
+    throw new Error("종목 추가에 실패했습니다.");
   }
 }
 
