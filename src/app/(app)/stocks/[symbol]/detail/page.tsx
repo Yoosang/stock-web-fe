@@ -1,17 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { getErrorMessage, getNews, NewsResponse, UnauthorizedError } from "@/lib/api";
-import { formatPubDate } from "@/lib/format";
+import { useQuoteHistory } from "@/lib/use-quote-history";
+import { changeRateColorClass, formatChangeRate, formatPrice, formatPubDate, formatQuoteTime } from "@/lib/format";
+import { PriceChart } from "./_components/PriceChart";
 
-export default function StockNewsPage() {
+export default function StockDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-8 text-sm text-muted">불러오는 중...</div>
+      }
+    >
+      <StockDetailContent />
+    </Suspense>
+  );
+}
+
+function StockDetailContent() {
   const { symbol } = useParams<{ symbol: string }>();
+  const searchParams = useSearchParams();
+  const priceParam = searchParams.get("price");
+  const seedPrice = priceParam !== null ? Number(priceParam) : null;
+  const seedTime = searchParams.get("time");
+
   const { ready } = useRequireAuth();
   const [news, setNews] = useState<NewsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { candles, latest } = useQuoteHistory(symbol, ready, seedPrice, seedTime);
 
   const reload = useCallback(async () => {
     if (!ready) return;
@@ -32,16 +52,34 @@ export default function StockNewsPage() {
 
   if (!ready) return null;
 
+  const price = latest?.price ?? (seedPrice !== null ? String(seedPrice) : null);
+  const changeRate = latest?.changeRate ?? null;
+  const time = latest?.time ?? seedTime;
+
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-8 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">
-          {news?.name ?? symbol} <span className="text-muted text-sm font-mono">{symbol}</span> 뉴스
+          {news?.name ?? symbol} <span className="text-muted text-sm font-mono">{symbol}</span>
         </h1>
         <Link href="/watchlist" className="text-sm text-muted hover:text-foreground transition-colors">
           관심종목으로
         </Link>
       </div>
+
+      <div className="flex items-baseline gap-3">
+        <p className={`text-2xl font-mono tabular-nums ${changeRateColorClass(changeRate)}`}>
+          {formatPrice(price)}
+        </p>
+        {changeRate !== null && (
+          <p className={`text-sm font-mono tabular-nums ${changeRateColorClass(changeRate)}`}>
+            {formatChangeRate(changeRate)}
+          </p>
+        )}
+        {time && <p className="text-xs text-muted">마지막 체결 {formatQuoteTime(time)}</p>}
+      </div>
+
+      <PriceChart candles={candles} />
 
       {error && <p className="text-sm text-up">{error}</p>}
 
