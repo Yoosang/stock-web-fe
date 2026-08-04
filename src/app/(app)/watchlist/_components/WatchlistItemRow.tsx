@@ -7,10 +7,7 @@ type Props = {
 };
 
 export function WatchlistItemRow({ item }: Props) {
-  const query = new URLSearchParams();
-  if (item.price !== null) query.set("price", item.price);
-  if (item.time !== null) query.set("time", item.time);
-  const href = `/stocks/${item.symbol}/detail${query.size > 0 ? `?${query}` : ""}`;
+  const href = `/stocks/${item.symbol}/detail`;
 
   return (
     <li className="border-b border-border last:border-b-0">

@@ -2,14 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import { CandlestickSeries, ColorType, createChart, IChartApi, ISeriesApi, UTCTimestamp } from "lightweight-charts";
-import { Candle } from "@/lib/use-quote-history";
+import { Candle } from "@/lib/api";
 import { getTickSize } from "@/lib/format";
 
 type Props = {
   candles: Candle[];
+  emptyMessage?: string;
 };
 
-export function PriceChart({ candles }: Props) {
+export function PriceChart({ candles, emptyMessage = "시세 연결 중..." }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -83,7 +84,7 @@ export function PriceChart({ candles }: Props) {
       <div ref={containerRef} className="h-full w-full" />
       {candles.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-muted pointer-events-none">
-          시세 연결 중...
+          {emptyMessage}
         </div>
       )}
     </div>

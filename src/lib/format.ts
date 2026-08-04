@@ -40,6 +40,14 @@ export function getTickSize(price: number): number {
   return 1000;
 }
 
+// 브라우저 로컬 타임존 기준 "오늘" 날짜 (yyyy-MM-dd). 이 앱은 한국 시간대에서
+// 쓰는 걸 전제하는 개인/시연용이라 허용 가능한 단순화로 본다.
+export function todayDateString(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function formatPubDate(pubDate: string): string {
   const date = new Date(pubDate);
   if (Number.isNaN(date.getTime())) return pubDate;

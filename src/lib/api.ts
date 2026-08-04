@@ -48,6 +48,8 @@ export type StockSearchResult = {
   market: string;
 };
 
+export type Candle = { time: number; open: number; high: number; low: number; close: number };
+
 async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
   return fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -139,6 +141,15 @@ export async function getNews(symbol: string): Promise<NewsResponse> {
   assertAuthorized(res);
   if (!res.ok) {
     throw new Error("뉴스를 불러오지 못했습니다.");
+  }
+  return res.json();
+}
+
+export async function getCandles(symbol: string, date: string): Promise<Candle[]> {
+  const res = await apiFetch(`/stocks/${symbol}/candles?date=${date}`, { method: "GET" });
+  assertAuthorized(res);
+  if (!res.ok) {
+    throw new Error("차트 데이터를 불러오지 못했습니다.");
   }
   return res.json();
 }
