@@ -1,17 +1,7 @@
-"use client";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-
-export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isLoading) return;
-    router.replace(isAuthenticated ? "/watchlist" : "/login");
-  }, [isLoading, isAuthenticated, router]);
-
-  return null;
+export default async function Home() {
+  const cookieStore = await cookies();
+  redirect(cookieStore.has("ACCESS_TOKEN") ? "/watchlist" : "/login");
 }

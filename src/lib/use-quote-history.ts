@@ -38,13 +38,12 @@ function applyTick(candles: Candle[], time: number, price: number): Candle[] {
   return [...candles, { time, open: price, high: price, low: price, close: price }];
 }
 
-export function useQuoteHistory(symbol: string, enabled: boolean, date: string) {
+export function useQuoteHistory(symbol: string, date: string) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [latest, setLatest] = useState<QuoteUpdate | null>(null);
   const isToday = date === todayDateString();
 
   useEffect(() => {
-    if (!enabled) return;
     let cancelled = false;
     let client: Client | null = null;
 
@@ -83,7 +82,7 @@ export function useQuoteHistory(symbol: string, enabled: boolean, date: string) 
       cancelled = true;
       client?.deactivate();
     };
-  }, [symbol, enabled, date, isToday]);
+  }, [symbol, date, isToday]);
 
   return { candles, latest, isToday };
 }

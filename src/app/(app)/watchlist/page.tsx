@@ -1,47 +1,15 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getWatchlistServer } from "@/lib/api-server";
+import { WatchlistView } from "./_components/WatchlistView";
 
-import { useState } from "react";
-import { useRequireAuth } from "@/lib/use-require-auth";
-import { useWatchlist } from "@/lib/use-watchlist";
-import { WatchlistItemRow } from "./_components/WatchlistItemRow";
-import { WatchlistManageModal } from "./_components/WatchlistManageModal";
-
-export default function WatchlistPage() {
-  const { ready } = useRequireAuth();
-  const { items, loadError, actionError, addSymbol, removeSymbol } = useWatchlist(ready);
-  const [manageOpen, setManageOpen] = useState(false);
-
-  if (!ready) return null;
+export default async function WatchlistPage() {
+  const result = await getWatchlistServer();
+  if (result.status === "unauthorized") redirect("/login");
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">관심종목</h1>
-        <button
-          onClick={() => setManageOpen(true)}
-          className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted hover:text-foreground hover:border-accent transition-colors"
-        >
-          관리
-        </button>
-      </div>
-
-      {loadError && <p className="text-sm text-up">{loadError}</p>}
-
-      <ul className="flex flex-col rounded-lg border border-border bg-surface overflow-hidden">
-        {items.map((item) => (
-          <WatchlistItemRow key={item.symbol} item={item} />
-        ))}
-        {items.length === 0 && <li className="py-10 text-center text-sm text-muted">관심종목이 없습니다.</li>}
-      </ul>
-
-      <WatchlistManageModal
-        open={manageOpen}
-        onClose={() => setManageOpen(false)}
-        items={items}
-        error={actionError}
-        onAdd={addSymbol}
-        onRemove={removeSymbol}
-      />
-    </div>
+    <WatchlistView
+      initialItems={result.status === "ok" ? result.data : []}
+      initialLoadError={result.status === "error" ? "관심종목을 불러오지 못했습니다." : null}
+    />
   );
 }

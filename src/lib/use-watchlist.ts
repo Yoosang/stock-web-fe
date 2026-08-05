@@ -14,9 +14,9 @@ import {
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 
-export function useWatchlist(enabled: boolean) {
-  const [items, setItems] = useState<WatchlistItem[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
+export function useWatchlist(initialItems: WatchlistItem[], initialLoadError: string | null) {
+  const [items, setItems] = useState<WatchlistItem[]>(initialItems);
+  const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [actionError, setActionError] = useState<string | null>(null);
 
   function handleError(err: unknown, setError: (message: string | null) => void) {
@@ -26,25 +26,18 @@ export function useWatchlist(enabled: boolean) {
   }
 
   const reload = useCallback(async () => {
-    if (!enabled) return;
     try {
       const data = await getWatchlist();
       setItems(data);
     } catch (err) {
       handleError(err, setLoadError);
     }
-  }, [enabled]);
-
-  useEffect(() => {
-    // 인증이 준비되면 관심종목을 가져오는 데이터 패칭이라 setState가 뒤따르는 게 정상 흐름이다.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    reload();
-  }, [reload]);
+  }, []);
 
   const symbolsKey = items.map((item) => item.symbol).join(",");
 
   useEffect(() => {
-    if (!enabled || !symbolsKey) return;
+    if (!symbolsKey) return;
 
     // 쿠키(ACCESS_TOKEN)는 WebSocket 핸드셰이크 요청에 브라우저가 자동으로 실어 보내므로
     // 별도 인증 헤더를 붙일 필요가 없다.
@@ -73,10 +66,9 @@ export function useWatchlist(enabled: boolean) {
     return () => {
       client.deactivate();
     };
-  }, [enabled, symbolsKey]);
+  }, [symbolsKey]);
 
   async function addSymbol(symbol: string): Promise<boolean> {
-    if (!enabled) return false;
     setActionError(null);
     try {
       await addWatchlist(symbol);
@@ -89,7 +81,6 @@ export function useWatchlist(enabled: boolean) {
   }
 
   async function removeSymbol(symbol: string) {
-    if (!enabled) return;
     setActionError(null);
     try {
       await removeWatchlist(symbol);
