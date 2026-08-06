@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getNewsServer } from "@/lib/api-server";
+import { getAlertSettingsServer, getNewsServer } from "@/lib/api-server";
 import { StockPriceSection } from "./_components/StockPriceSection";
 import { StockNews } from "./_components/StockNews";
+import { AlertSettings } from "./_components/AlertSettings";
 
 type Props = {
   params: Promise<{ symbol: string }>;
@@ -13,10 +14,17 @@ export default async function StockDetailPage({ params, searchParams }: Props) {
   const { symbol } = await params;
   const { date } = await searchParams;
 
-  const result = await getNewsServer(symbol);
-  if (result.status === "unauthorized") redirect("/login");
+  const [newsResult, alertResult] = await Promise.all([getNewsServer(symbol), getAlertSettingsServer(symbol)]);
+  if (newsResult.status === "unauthorized" || alertResult.status === "unauthorized") redirect("/login");
 
-  const news = result.status === "ok" ? result.data : null;
+  const news = newsResult.status === "ok" ? newsResult.data : null;
+  const alertSettings = alertResult.status === "ok" ? alertResult.data : null;
+  const alertLoadError =
+    alertResult.status === "not_in_watchlist"
+      ? "관심종목에 먼저 추가해주세요."
+      : alertResult.status === "error"
+        ? "알림 설정을 불러오지 못했습니다."
+        : null;
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-8 flex flex-col gap-6">
@@ -31,7 +39,9 @@ export default async function StockDetailPage({ params, searchParams }: Props) {
 
       <StockPriceSection symbol={symbol} initialDate={date} />
 
-      <StockNews news={news} error={result.status === "error" ? "뉴스를 불러오지 못했습니다." : null} />
+      <AlertSettings symbol={symbol} initialSettings={alertSettings} initialLoadError={alertLoadError} />
+
+      <StockNews news={news} error={newsResult.status === "error" ? "뉴스를 불러오지 못했습니다." : null} />
     </div>
   );
 }

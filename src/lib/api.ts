@@ -50,6 +50,14 @@ export type StockSearchResult = {
 
 export type Candle = { time: number; open: number; high: number; low: number; close: number };
 
+export type AlertSettings = {
+  alertEnabled: boolean;
+  targetPriceAbove: number | null;
+  targetPriceBelow: number | null;
+  changeRateThresholdAbove: number | null;
+  changeRateThresholdBelow: number | null;
+};
+
 async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
   return fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -152,4 +160,26 @@ export async function getCandles(symbol: string, date: string): Promise<Candle[]
     throw new Error("차트 데이터를 불러오지 못했습니다.");
   }
   return res.json();
+}
+
+export async function getAlertSettings(symbol: string): Promise<AlertSettings> {
+  const res = await apiFetch(`/watchlist/${symbol}/alert`, { method: "GET" });
+  assertAuthorized(res);
+  if (!res.ok) {
+    if (res.status === 404) throw new Error("관심종목에 먼저 추가해주세요.");
+    throw new Error("알림 설정을 불러오지 못했습니다.");
+  }
+  return res.json();
+}
+
+export async function updateAlertSettings(symbol: string, settings: AlertSettings): Promise<void> {
+  const res = await apiFetch(`/watchlist/${symbol}/alert`, {
+    method: "PUT",
+    body: JSON.stringify(settings),
+  });
+  assertAuthorized(res);
+  if (!res.ok) {
+    if (res.status === 404) throw new Error("관심종목에 먼저 추가해주세요.");
+    throw new Error("알림 설정 저장에 실패했습니다.");
+  }
 }
