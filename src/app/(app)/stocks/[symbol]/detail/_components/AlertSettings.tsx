@@ -17,15 +17,6 @@ const EMPTY_ALERT: AlertSettingsType = {
   changeRateThresholdBelow: null,
 };
 
-function hasCondition(s: AlertSettingsType): boolean {
-  return (
-    s.targetPriceAbove != null ||
-    s.targetPriceBelow != null ||
-    s.changeRateThresholdAbove != null ||
-    s.changeRateThresholdBelow != null
-  );
-}
-
 function describeAlert(s: AlertSettingsType): string {
   if (s.targetPriceAbove != null) return `현재가 ${s.targetPriceAbove.toLocaleString("ko-KR")}원 이상 도달 시 알림`;
   if (s.targetPriceBelow != null) return `현재가 ${s.targetPriceBelow.toLocaleString("ko-KR")}원 이하 도달 시 알림`;
@@ -49,7 +40,7 @@ export function AlertSettings({ symbol, initialSettings, initialLoadError }: Pro
     return <p className="text-sm text-muted">{initialLoadError ?? "관심종목에 먼저 추가해주세요."}</p>;
   }
 
-  const active = hasCondition(settings);
+  const active = settings.alertEnabled;
 
   return (
     <div className="rounded-lg border border-border bg-surface">
