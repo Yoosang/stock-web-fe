@@ -107,6 +107,15 @@ export async function getMe(): Promise<boolean> {
   return res.ok;
 }
 
+// 접속 로그 집계용 best-effort 호출이라 실패해도 화면 동작에 영향을 주지 않는다.
+export async function pingVisit(): Promise<void> {
+  try {
+    await apiFetch("/access/visit", { method: "POST" });
+  } catch {
+    // ignore
+  }
+}
+
 export async function getWatchlist(): Promise<WatchlistItem[]> {
   const res = await apiFetch("/watchlist", { method: "GET" });
   assertAuthorized(res);

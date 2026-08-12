@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
-import { getMe, logout as apiLogout, UNAUTHORIZED_EVENT } from "@/lib/api";
+import { getMe, logout as apiLogout, pingVisit, UNAUTHORIZED_EVENT } from "@/lib/api";
 
 const SESSION_CHECK_INTERVAL_MS = 30_000;
 
@@ -24,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // 탭이 새로 열리거나 하드 새로고침될 때만 실행되는 최초 마운트 effect라, 접속 카운트 용도로 적합하다.
+    pingVisit();
     // 마운트 시 서버에 세션(httpOnly 쿠키) 유효성을 확인하는 데이터 패칭이라 setState가 뒤따르는 게 정상 흐름이다.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     checkSession().finally(() => setIsLoading(false));
