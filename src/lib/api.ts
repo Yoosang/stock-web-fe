@@ -83,7 +83,19 @@ export async function login(email: string, password: string): Promise<void> {
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
-    throw new Error(res.status === 401 ? "이메일 또는 비밀번호가 올바르지 않습니다." : "로그인에 실패했습니다.");
+    if (res.status === 401) {
+      const body = await res.json().catch(() => null);
+      const remainingAttempts = typeof body?.data === "number" ? body.data : null;
+      throw new Error(
+        remainingAttempts !== null
+          ? `이메일 또는 비밀번호가 올바르지 않습니다. (남은 시도 ${remainingAttempts}회)`
+          : "이메일 또는 비밀번호가 올바르지 않습니다."
+      );
+    }
+    if (res.status === 429) {
+      throw new Error("로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
+    }
+    throw new Error("로그인에 실패했습니다.");
   }
 }
 
