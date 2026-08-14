@@ -95,6 +95,9 @@ export async function login(email: string, password: string): Promise<void> {
     if (res.status === 429) {
       throw new Error("로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
     }
+    if (res.status === 403) {
+      throw new Error("이메일 인증이 필요합니다. 메일함을 확인해 주세요.");
+    }
     throw new Error("로그인에 실패했습니다.");
   }
 }
@@ -105,7 +108,31 @@ export async function signup(email: string, password: string): Promise<void> {
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
-    throw new Error(res.status === 409 ? "이미 사용 중인 이메일입니다." : "회원가입에 실패했습니다.");
+    if (res.status === 409) throw new Error("이미 사용 중인 이메일입니다.");
+    if (res.status === 400) throw new Error("이메일 인증이 필요합니다.");
+    throw new Error("회원가입에 실패했습니다.");
+  }
+}
+
+export async function sendVerificationCode(email: string): Promise<void> {
+  const res = await apiFetch("/auth/send-verify-email", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    if (res.status === 409) throw new Error("이미 사용 중인 이메일입니다.");
+    if (res.status === 400) throw new Error("이메일 형식이 올바르지 않습니다.");
+    throw new Error("인증메일 발송에 실패했습니다.");
+  }
+}
+
+export async function confirmVerificationCode(email: string, token: string): Promise<void> {
+  const res = await apiFetch("/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ email, token }),
+  });
+  if (!res.ok) {
+    throw new Error("인증번호가 일치하지 않거나 만료되었습니다.");
   }
 }
 
