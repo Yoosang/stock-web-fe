@@ -167,14 +167,19 @@ export default function LoginPage() {
         {mode === "signup" && verified && <p className="text-sm text-accent">이메일 인증이 완료되었습니다.</p>}
 
         {(mode === "login" || verified) && (
-          <input
-            type="password"
-            placeholder="비밀번호"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
-          />
+          <div className="flex flex-col gap-1">
+            <input
+              type="password"
+              placeholder="비밀번호"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              pattern={mode === "signup" ? "(?=.*[A-Za-z])(?=.*\\d).{8,}" : undefined}
+              title={mode === "signup" ? "8자 이상, 영문과 숫자를 포함해야 합니다." : undefined}
+              className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+            {mode === "signup" && <p className="text-xs text-muted">8자 이상, 영문과 숫자를 포함해야 합니다.</p>}
+          </div>
         )}
 
         {message && (
