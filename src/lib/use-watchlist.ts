@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Client } from "@stomp/stompjs";
 import {
   addWatchlist,
   getErrorMessage,
@@ -11,8 +10,7 @@ import {
   UnauthorizedError,
   WatchlistItem,
 } from "@/lib/api";
-
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
+import { subscribeTopic } from "@/lib/stomp-manager";
 
 export function useWatchlist(initialItems: WatchlistItem[], initialLoadError: string | null) {
   const [items, setItems] = useState<WatchlistItem[]>(initialItems);
@@ -39,32 +37,21 @@ export function useWatchlist(initialItems: WatchlistItem[], initialLoadError: st
   useEffect(() => {
     if (!symbolsKey) return;
 
-    // 쿠키(ACCESS_TOKEN)는 WebSocket 핸드셰이크 요청에 브라우저가 자동으로 실어 보내므로
-    // 별도 인증 헤더를 붙일 필요가 없다.
-    const client = new Client({
-      brokerURL: WS_URL,
-      reconnectDelay: 5000,
-    });
-
-    client.onConnect = () => {
-      symbolsKey.split(",").forEach((symbol) => {
-        client.subscribe(`/topic/quotes/${symbol}`, (message) => {
-          const quote = JSON.parse(message.body) as QuoteUpdate;
-          setItems((prev) =>
-            prev.map((item) =>
-              item.symbol === quote.symbol
-                ? { ...item, price: quote.price, time: quote.time, changeRate: quote.changeRate }
-                : item
-            )
-          );
-        });
-      });
-    };
-
-    client.activate();
+    const unsubscribers = symbolsKey.split(",").map((symbol) =>
+      subscribeTopic(`/topic/quotes/${symbol}`, (message) => {
+        const quote = JSON.parse(message.body) as QuoteUpdate;
+        setItems((prev) =>
+          prev.map((item) =>
+            item.symbol === quote.symbol
+              ? { ...item, price: quote.price, time: quote.time, changeRate: quote.changeRate }
+              : item
+          )
+        );
+      })
+    );
 
     return () => {
-      client.deactivate();
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [symbolsKey]);
 

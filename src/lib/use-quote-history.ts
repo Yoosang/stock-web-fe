@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Client } from "@stomp/stompjs";
 import { Candle, getCandles, QuoteUpdate } from "@/lib/api";
 import { todayDateString } from "@/lib/format";
+import { subscribeTopic } from "@/lib/stomp-manager";
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 const BUCKET_SECONDS = 180; // 3분봉
 
 // KIS 체결시간("HHmmss")을 오늘 날짜 기준 3분봉 버킷 시작 시각(UNIX 초)으로 변환한다.
@@ -45,7 +44,7 @@ export function useQuoteHistory(symbol: string, date: string) {
 
   useEffect(() => {
     let cancelled = false;
-    let client: Client | null = null;
+    let unsubscribe: (() => void) | null = null;
 
     // symbol/date가 바뀔 때 이전 종목/날짜의 누적 데이터를 지우고 새로 시작하는
     // 리셋이라 setState가 뒤따르는 게 정상 흐름이다.
@@ -62,25 +61,19 @@ export function useQuoteHistory(symbol: string, date: string) {
         setCandles(data);
         if (!isToday) return; // 과거 날짜는 완결된 데이터라 실시간 갱신 불필요
 
-        // 쿠키(ACCESS_TOKEN)는 WebSocket 핸드셰이크 요청에 브라우저가 자동으로
-        // 실어 보내므로 별도 인증 헤더를 붙일 필요가 없다. (use-watchlist.ts와 동일)
-        client = new Client({ brokerURL: WS_URL, reconnectDelay: 5000 });
-        client.onConnect = () => {
-          client!.subscribe(`/topic/quotes/${symbol}`, (message) => {
-            const quote = JSON.parse(message.body) as QuoteUpdate;
-            setLatest(quote);
-            const price = Number(quote.price);
-            if (Number.isNaN(price)) return;
-            setCandles((prev) => applyTick(prev, toBucketStart(quote.time), price));
-          });
-        };
-        client.activate();
+        unsubscribe = subscribeTopic(`/topic/quotes/${symbol}`, (message) => {
+          const quote = JSON.parse(message.body) as QuoteUpdate;
+          setLatest(quote);
+          const price = Number(quote.price);
+          if (Number.isNaN(price)) return;
+          setCandles((prev) => applyTick(prev, toBucketStart(quote.time), price));
+        });
       })
       .catch(() => {});
 
     return () => {
       cancelled = true;
-      client?.deactivate();
+      unsubscribe?.();
     };
   }, [symbol, date, isToday]);
 
